@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RetailHub ERP | Enterprise Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --primary: #10b981; 
+  --primary-glow: rgba(16, 185, 129, 0.15);
+  --danger: #ef4444; 
+  --success: #10b981;
+  --bg: #020617; 
+  --bg-card: #1e293b; 
+  --bg-surface: #0f172a;
+  --text: #f8fafc; 
+  --text-muted: #94a3b8;
+  --border: #334155;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; font-family: 'Plus Jakarta Sans', sans-serif; background: var(--bg); color: var(--text); display: flex; min-height: 100vh; overflow: hidden; }
+
+/* --- LOGIN PAGE --- */
+#loginPage { position: fixed; inset: 0; background: var(--bg); display: flex; justify-content: center; align-items: center; z-index: 10000; }
+.login-box { background: var(--bg-surface); padding: 50px; border-radius: 24px; width: 400px; text-align: center; border: 1px solid var(--border); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5); }
+.login-box h2 { font-weight: 800; letter-spacing: -1px; margin-bottom: 30px; color: var(--primary); }
+.login-box input { width: 100%; padding: 14px; margin: 10px 0; border-radius: 12px; border: 1px solid var(--border); background: var(--bg-deep); color: var(--text); outline: none; transition: 0.3s; }
+.login-box button:not(.btn-primary) { background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 10px 15px; margin: 5px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+.login-box button.active { border-color: var(--primary); color: var(--primary); background: var(--primary-glow); }
+
+/* --- SIDEBAR --- */
+.sidebar { width: 260px; background: var(--bg-surface); padding: 40px 20px; display: none; flex-direction: column; border-right: 1px solid var(--border); }
+.sidebar h3 { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.15em; color: var(--text-muted); margin-bottom: 25px; padding-left: 15px; }
+.nav-link { padding: 14px 16px; margin: 4px 0; cursor: pointer; border-radius: 12px; font-weight: 600; transition: 0.2s; color: var(--text-muted); display: flex; align-items: center; }
+.nav-link:hover { background: rgba(255,255,255,0.03); color: var(--text); }
+.nav-link.active { background: var(--primary-glow); color: var(--primary); }
+
+/* --- CONTENT --- */
+.main-content { flex: 1; padding: 40px; display: none; overflow-y: auto; background: radial-gradient(circle at top right, #0f172a, #020617); }
+.section { display: none; }
+.section.active { display: block; animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; } }
+
+/* --- CARDS & STATS --- */
+.stat-box { background: var(--bg-card); padding: 24px; border-radius: 20px; border: 1px solid var(--border); margin-bottom: 15px; }
+.table-container { background: var(--bg-surface); border: 1px solid var(--border); border-radius: 20px; overflow: hidden; margin-bottom: 30px; }
+table { width: 100%; border-collapse: collapse; }
+th { text-align: left; padding: 18px 24px; background: rgba(255,255,255,0.02); font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 700; }
+td { padding: 18px 24px; border-top: 1px solid var(--border); font-size: 0.95rem; }
+
+/* --- PRODUCT GRID --- */
+.product-card { background: var(--bg-card); border-radius: 20px; padding: 25px; border: 1px solid var(--border); display: inline-block; width: 220px; text-align: center; margin: 12px; transition: 0.3s; }
+.product-card:hover { transform: translateY(-5px); border-color: var(--primary); }
+.product-card h4 { margin: 15px 0 5px 0; font-size: 1.1rem; }
+
+/* --- BUTTONS & INPUTS --- */
+.btn { padding: 12px 24px; border: none; border-radius: 12px; cursor: pointer; font-weight: 700; transition: 0.2s; }
+.btn-primary { background: var(--primary); color: white; }
+.btn-outline { background: transparent; border: 1px solid var(--primary); color: var(--primary); margin-left: 10px; }
+input, select { background: var(--bg-deep); border: 1px solid var(--border); padding: 12px 16px; border-radius: 10px; color: white; margin: 8px 0; outline: none; }
+
+/* --- MODALS --- */
+#successModal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); display: none; justify-content: center; align-items: center; z-index: 20000; }
+.modal-content { background: var(--bg-surface); padding: 40px; border-radius: 30px; text-align: center; border: 1px solid var(--primary); width: 350px; }
+
+/* --- CART ACTION BUTTONS --- */
+.cart-controls { display: flex; align-items: center; gap: 10px; }
+.qty-btn { width: 25px; height: 25px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg-card); color: white; cursor: pointer; }
+.qty-btn:hover { background: var(--primary); }
+
+/* --- CHATBOT UI --- */
+#chat-widget { position: fixed; bottom: 25px; right: 25px; z-index: 10005; }
+#chat-circle { width: 60px; height: 60px; border-radius: 50%; background: var(--primary); display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 10px 30px rgba(16, 185, 129, 0.3); font-size: 1.5rem; }
+#chat-box { width: 350px; height: 500px; background: var(--bg-surface); border: 1px solid var(--border); border-radius: 24px; display: none; flex-direction: column; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+#chat-header { background: var(--bg-card); padding: 20px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); }
+#chat-messages { flex: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; scroll-behavior: smooth; }
+.msg { max-width: 85%; padding: 12px 16px; border-radius: 15px; font-size: 0.85rem; line-height: 1.5; position: relative; }
+.msg.bot { background: var(--bg-card); color: var(--text); align-self: flex-start; border-bottom-left-radius: 2px; }
+.msg.user { background: var(--primary); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+#chat-input-area { padding: 20px; background: var(--bg-surface); border-top: 1px solid var(--border); display: flex; gap: 10px; }
+#chat-input-field { flex: 1; background: var(--bg-deep); border: 1px solid var(--border); padding: 10px 15px; border-radius: 10px; color: white; outline: none; }
+</style>
+</head>
+<body>
+
+<div id="loginPage">
+  <div class="login-box">
+    <h2>RetailHub ERP</h2>
+    <div style="margin-bottom: 20px;">
+        <button onclick="setMode('owner')" id="ownerBtn" class="active">Owner Portal</button>
+        <button onclick="setMode('customer')" id="custBtn">Customer View</button>
+    </div>
+    <div id="passDiv"><input type="password" id="pass" placeholder="Owner Password"></div>
+    <button class="btn btn-primary" style="width: 100%;" onclick="login()">Enter System</button>
+    <p id="errMsg" style="color:var(--danger); margin-top:10px"></p>
+  </div>
+</div>
+
+<div id="successModal">
+    <div class="modal-content">
+        <div style="font-size: 4rem; margin-bottom: 15px;">✅</div>
+        <h2>Payment Successful</h2>
+        <p style="color: var(--text-muted); margin-bottom: 25px;">The transaction has been recorded.</p>
+        <button class="btn btn-primary" style="width: 100%;" onclick="closeModal()">Done</button>
+    </div>
+</div>
+
+<div id="chat-widget">
+    <div id="chat-circle" onclick="toggleChat()">🤖</div>
+    <div id="chat-box">
+        <div id="chat-header">
+            <strong>RetailHub AI</strong>
+            <span style="cursor:pointer" onclick="toggleChat()">✖</span>
+        </div>
+        <div id="chat-messages">
+            <div class="msg bot">Hello! I'm your retail assistant. How can I help you manage the store today?</div>
+        </div>
+        <div id="chat-input-area">
+            <input type="text" id="chat-input-field" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendChat()">
+            <button class="btn btn-primary" style="padding: 8px 12px;" onclick="sendChat()">Send</button>
+        </div>
+    </div>
+</div>
+
+<div class="sidebar" id="sidebar">
+  <h2 style="color: var(--primary); font-weight: 800; margin-bottom: 30px; text-align: center; letter-spacing: -1px;">RETAILHUB</h2>
+  <div id="ownerNav">
+    <div class="nav-link active" onclick="nav('ownerDash', this)">Dashboard</div>
+    <div class="nav-link" onclick="nav('procure', this)">Procurement</div>
+    <div class="nav-link" onclick="nav('inv', this)">Inventory</div>
+    <div class="nav-link" onclick="nav('hist', this)">Sales History</div>
+  </div>
+  <div id="custNav" style="display:none">
+    <div class="nav-link active" onclick="nav('custStore', this)">Store</div>
+    <div class="nav-link" onclick="nav('custCart', this)">Cart (<span id="cartCount">0</span>)</div>
+  </div>
+  <div class="nav-link" onclick="logout()" style="margin-top:auto;color:var(--danger)">Logout</div>
+</div>
+
+<div class="main-content" id="main">
+  <div id="ownerDash" class="section active">
+    <h1>Executive Summary</h1>
+    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px;">
+        <div class="stat-box"><label>Gross Revenue</label><div id="dRev">₹0</div></div>
+        <div class="stat-box"><label>Net Profit</label><div id="dProf" style="color:var(--primary)">₹0</div></div>
+        <div class="stat-box"><label>Total SKUs</label><div id="dSku">0</div></div>
+        <div class="stat-box"><label>Low Stock</label><div id="dLow" style="color:var(--danger)">0</div></div>
+    </div>
+  </div>
+  
+  <div id="procure" class="section">
+    <h1>Procurement</h1>
+    <div class="table-container" style="padding: 25px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+        <input type="text" id="pItem" placeholder="Item Name">
+        <input type="text" id="pSup" placeholder="Supplier">
+        <input type="number" id="pQty" placeholder="Qty">
+        <input type="number" id="pCost" placeholder="Unit Cost">
+        <input type="number" id="pPrice" placeholder="Unit Price">
+        <select id="pStat">
+          <option value="pending">Pending</option>
+          <option value="shipped">Shipped</option>
+          <option value="delivered">Delivered</option>
+        </select>
+        <button class="btn btn-primary" style="grid-column: span 2;" onclick="addOrder()">Update Stock Ledger</button>
+    </div>
+    <div id="orderList"></div>
+  </div>
+
+  <div id="inv" class="section">
+    <h1>Warehouse Inventory</h1>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Product Name</th><th>Stock</th><th>Cost</th><th>Price</th></tr></thead>
+        <tbody id="invBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="hist" class="section">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h1>Sales Logs</h1>
+        <button class="btn btn-outline" onclick="downloadHistory()">📥 Download CSV</button>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead><tr><th>Date</th><th>Method</th><th>Items</th><th>Total</th></tr></thead>
+        <tbody id="histBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div id="custStore" class="section">
+    <h1>Storefront</h1>
+    <div id="storeGrid"></div>
+  </div>
+
+  <div id="custCart" class="section">
+    <h1>Checkout</h1>
+    <div class="table-container" id="cartList" style="padding: 20px; min-height: 150px;"></div>
+    <div class="stat-box" style="text-align: center; border: 2px solid var(--primary);">
+        <label>Total</label>
+        <div id="total" style="font-size: 3rem; margin: 10px 0;">₹0</div>
+        <select id="pay" style="width: 200px;"><option>Cash</option><option>Card</option><option>UPI</option></select><br>
+        <button class="btn btn-primary" style="width: 200px; margin-top:20px" onclick="checkout()">Pay Now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+let mode='owner';
+let inventory=JSON.parse(localStorage.getItem('inventory'))||[];
+let orders=JSON.parse(localStorage.getItem('orders'))||[];
+let sales=JSON.parse(localStorage.getItem('sales'))||[];
+let totalRev=parseFloat(localStorage.getItem('rev'))||0;
+let totalProf=parseFloat(localStorage.getItem('prof'))||0;
+let cart=[];
+
+function setMode(m){
+    mode=m;
+    document.getElementById('passDiv').style.display=(m==='owner')?'block':'none';
+    document.getElementById('ownerBtn').classList.toggle('active', m==='owner');
+    document.getElementById('custBtn').classList.toggle('active', m==='customer');
+}
+
+function login(){
+  if(mode==='owner'&&document.getElementById('pass').value!=='Owner@123'){document.getElementById('errMsg').innerText='Wrong Password';return;}
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('sidebar').style.display='flex';
+  document.getElementById('main').style.display='block';
+  document.getElementById('ownerNav').style.display=(mode==='owner')?'block':'none';
+  document.getElementById('custNav').style.display=(mode==='customer')?'block':'none';
+  render();
+}
+
+function logout(){ location.reload(); }
+
+function nav(id,el){
+    document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.nav-link').forEach(l=>l.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    el.classList.add('active');
+}
+
+function addOrder(){
+  const n=document.getElementById('pItem').value, q=parseInt(document.getElementById('pQty').value);
+  const sup=document.getElementById('pSup').value, c=parseFloat(document.getElementById('pCost').value);
+  const p=parseFloat(document.getElementById('pPrice').value), s=document.getElementById('pStat').value;
+  if(!n||isNaN(q)) return;
+  orders.unshift({item:n,qty:q,sup:sup,date:new Date().toLocaleDateString(),stat:s});
+  let inv=inventory.find(i=>i.name===n);
+  if(inv){inv.stock+=q;inv.cost=c;inv.price=p;}
+  else inventory.push({id:Date.now(),name:n,stock:q,cost:c,price:p});
+  sync();
+}
+
+/* CUSTOMER CART LOGIC - ADD/REMOVE */
+function addToCart(id){
+  let item=inventory.find(i=>i.id===id||i.name===id);
+  if(!item||item.stock<=0) return alert('Out of Stock');
+  let inC=cart.find(c=>c.id===item.id);
+  if(inC){
+      if(inC.qty < item.stock) inC.qty++;
+      else alert('Max stock reached');
+  } else cart.push({...item,qty:1});
+  updateCartUI();
+}
+
+function changeQty(id, delta){
+    let inC=cart.find(c=>c.id===id);
+    if(inC){
+        inC.qty += delta;
+        if(inC.qty <= 0) cart = cart.filter(c => c.id !== id);
+        else {
+            let item = inventory.find(i => i.id === id);
+            if(inC.qty > item.stock) {
+                alert('Max stock reached');
+                inC.qty = item.stock;
+            }
+        }
+    }
+    updateCartUI();
+}
+
+function updateCartUI(){
+  let sub=0;
+  document.getElementById('cartCount').innerText = cart.reduce((a,b)=>a+b.qty, 0);
+  document.getElementById('cartList').innerHTML=cart.map(c=>{
+      sub+=c.price*c.qty; 
+      return `
+      <div style="padding:12px; border-bottom:1px solid rgba(255,255,255,0.05); display:flex; justify-content:space-between; align-items:center;">
+        <span><b>${c.name}</b></span>
+        <div class="cart-controls">
+            <button class="qty-btn" onclick="changeQty(${c.id}, -1)">-</button>
+            <span style="width:20px; text-align:center">${c.qty}</span>
+            <button class="qty-btn" onclick="changeQty(${c.id}, 1)">+</button>
+            <span style="margin-left:20px; min-width:80px; text-align:right">₹${(c.price*c.qty).toFixed(2)}</span>
+        </div>
+      </div>`
+  }).join('')||'Cart is empty';
+  document.getElementById('total').innerText='₹'+sub.toFixed(2);
+}
+
+function checkout(){
+  if(cart.length===0) return alert('Cart empty');
+  let sub=0,prof=0;
+  cart.forEach(c=>{
+    let inv=inventory.find(i=>i.id===c.id||i.name===c.name);
+    inv.stock-=c.qty; sub+=c.price*c.qty; prof+=(c.price-inv.cost)*c.qty;
+  });
+  sales.unshift({date:new Date().toLocaleString(),method:document.getElementById('pay').value,items:cart.map(c=>c.name).join(','),total:sub.toFixed(2)});
+  totalRev+=sub; totalProf+=prof;
+  document.getElementById('successModal').style.display = 'flex';
+  cart=[]; updateCartUI(); sync();
+}
+
+function closeModal(){ document.getElementById('successModal').style.display = 'none'; }
+
+/* PAYMENT HISTORY DOWNLOAD (CSV) */
+function downloadHistory(){
+    let csv = "Date,Method,Items,Total\n";
+    sales.forEach(s => {
+        csv += `${s.date},${s.method},"${s.items}",₹${s.total}\n`;
+    });
+    let blob = new Blob([csv], { type: 'text/csv' });
+    let url = window.URL.createObjectURL(blob);
+    let a = document.createElement('a');
+    a.href = url;
+    a.download = `RetailHub_Sales_History_${new Date().toLocaleDateString()}.csv`;
+    a.click();
+}
+
+function sync(){
+  localStorage.setItem('inventory',JSON.stringify(inventory));
+  localStorage.setItem('orders',JSON.stringify(orders));
+  localStorage.setItem('sales',JSON.stringify(sales));
+  localStorage.setItem('rev',totalRev);
+  localStorage.setItem('prof',totalProf);
+  render();
+}
+
+function render(){
+  let low=0;
+  document.getElementById('invBody').innerHTML=inventory.map(i=>{if(i.stock<5) low++; return `<tr><td><b>${i.name}</b></td><td>${i.stock} units</td><td>₹${i.cost}</td><td>₹${i.price}</td></tr>`;}).join('');
+  document.getElementById('dRev').innerText='₹'+totalRev.toFixed(2);
+  document.getElementById('dProf').innerText='₹'+totalProf.toFixed(2);
+  document.getElementById('dSku').innerText=inventory.length;
+  document.getElementById('dLow').innerText=low;
+  document.getElementById('orderList').innerHTML=orders.map(o=>`<div class="stat-box" style="display:flex; justify-content:space-between"><span><b>${o.item}</b> x${o.qty}</span><span style="color:var(--primary)">${o.stat}</span></div>`).join('');
+  document.getElementById('storeGrid').innerHTML=inventory.map(i=>`<div class="product-card"><h4>${i.name}</h4><div style="font-size:1.2rem; font-weight:800; color:var(--primary)">₹${i.price}</div><p style="font-size:0.8rem; color:var(--text-muted)">Stock: ${i.stock}</p><button class="btn btn-primary" style="width:100%;" onclick="addToCart('${i.name}')">Add to Cart</button></div>`).join('');
+  document.getElementById('histBody').innerHTML=sales.map(s=>`<tr><td>${s.date}</td><td>${s.method}</td><td>${s.items}</td><td style="color:var(--primary); font-weight:700">₹${s.total}</td></tr>`).join('');
+}
+
+/* CHATBOT LOGIC */
+function toggleChat() {
+    const box = document.getElementById('chat-box');
+    box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
+}
+
+async function sendChat() {
+    const input = document.getElementById('chat-input-field');
+    const msgArea = document.getElementById('chat-messages');
+    const text = input.value.trim();
+    if (!text) return;
+
+    msgArea.innerHTML += `<div class="msg user">${text}</div>`;
+    input.value = '';
+
+    try {
+        const response = await fetch('http://127.0.0.1:5000/api/chat', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ 
+        message: text,
+        inventory: inventory,
+        sales: sales,
+        revenue: totalRev,
+        profit: totalProf
+    })
+});
+      
+        if (!response.ok) throw new Error("Server error");
+
+        const data = await response.json();
+        msgArea.innerHTML += `<div class="msg bot">${data.reply}</div>`;
+    } catch (error) {
+        msgArea.innerHTML += `<div class="msg bot">⚠️ Cannot connect to AI server. Please ensure your Python backend is running on port 5000.</div>`;
+    }
+    msgArea.scrollTop = msgArea.scrollHeight;
+}
+</script>
+</body>
+</html>
