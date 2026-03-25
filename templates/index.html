@@ -244,14 +244,41 @@ function nav(id,el){
 }
 
 function addOrder(){
-  const n=document.getElementById('pItem').value, q=parseInt(document.getElementById('pQty').value);
-  const sup=document.getElementById('pSup').value, c=parseFloat(document.getElementById('pCost').value);
-  const p=parseFloat(document.getElementById('pPrice').value), s=document.getElementById('pStat').value;
-  if(!n||isNaN(q)) return;
-  orders.unshift({item:n,qty:q,sup:sup,date:new Date().toLocaleDateString(),stat:s});
-  let inv=inventory.find(i=>i.name===n);
-  if(inv){inv.stock+=q;inv.cost=c;inv.price=p;}
-  else inventory.push({id:Date.now(),name:n,stock:q,cost:c,price:p});
+  const n = document.getElementById('pItem').value.trim();
+  const q = parseInt(document.getElementById('pQty').value);
+  const sup = document.getElementById('pSup').value;
+  const c = parseFloat(document.getElementById('pCost').value);
+  const p = parseFloat(document.getElementById('pPrice').value);
+  const s = document.getElementById('pStat').value;
+
+  if(!n || isNaN(q)) return;
+
+  orders.unshift({
+    item:n,
+    qty:q,
+    sup:sup,
+    date:new Date().toLocaleDateString(),
+    stat:s
+  });
+
+  let inv = inventory.find(i => 
+    i.name.toLowerCase().trim() === n.toLowerCase().trim()
+  );
+
+  if(inv){
+    inv.stock += q;
+    inv.cost = c;
+    inv.price = p;
+  } else {
+    inventory.push({
+      id: Date.now(),
+      name: n,
+      stock: q,
+      cost: c,
+      price: p
+    });
+  }
+
   sync();
 }
 
