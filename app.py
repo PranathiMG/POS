@@ -15,7 +15,12 @@ app = Flask(__name__, static_folder=".", template_folder="templates")
 def health_check():
     return jsonify({"status": "ok"}), 200
 
+from flask import send_from_directory
 
+@app.route('/sitemap.xml')
+def sitemap():
+    return send_from_directory('.', 'sitemap.xml')
+    
 # Serve index.html
 @app.route("/")
 def index():
